@@ -47,7 +47,7 @@ class _StudentPaymentState extends State<StudentPayment> {
   }
 
   Future<void> _pickReceipt() async {
-    final result = await FilePicker.pickFiles(
+    final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
     );
