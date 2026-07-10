@@ -20,6 +20,7 @@ jobs:
           channel: 'stable'
       - name: Build APK
         run: |
+          echo "${{ secrets.DOT_ENV }}" > .env
           flutter pub get
           flutter build apk --release
       - name: Upload to Firebase App Distribution
