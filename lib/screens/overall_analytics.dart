@@ -131,16 +131,20 @@ class _OverallAnalyticsState extends State<OverallAnalytics> {
                 children: [
                   Row(
                     children: [
-                      Consumer<AuthProvider>(
-                        builder: (context, authProvider, child) {
-                          return Text(
-                            authProvider.userProfile?.name ?? 'Organizer',
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          );
-                        }
+                      Expanded(
+                        child: Consumer<AuthProvider>(
+                          builder: (context, authProvider, child) {
+                            return Text(
+                              authProvider.userProfile?.name ?? 'Organizer',
+                              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            );
+                          }
+                        ),
                       ),
                       const SizedBox(width: 8),
                       GestureDetector(
