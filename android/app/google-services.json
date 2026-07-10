@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "709842396664",
+    "project_id": "campus-event-tracker-7e56e",
+    "storage_bucket": "campus-event-tracker-7e56e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:709842396664:android:5fbf564bd10d16b72fe20d",
+        "android_client_info": {
+          "package_name": "com.example.campus_event_tracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1R9Se5tn1-bjjlf1XcOixaLtFspuvKDA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:709842396664:android:dedb1408199c89ba2fe20d",
+        "android_client_info": {
+          "package_name": "com.hazim.campuseventtracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1R9Se5tn1-bjjlf1XcOixaLtFspuvKDA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:709842396664:android:4b86fffd03fed8152fe20d",
+        "android_client_info": {
+          "package_name": "com.jimmy.campuseventtracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1R9Se5tn1-bjjlf1XcOixaLtFspuvKDA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
