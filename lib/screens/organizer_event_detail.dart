@@ -205,10 +205,13 @@ class OrganizerEventDetail extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          Text(
-                            'ID: ${event.id}',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.outline,
+                          Expanded(
+                            child: Text(
+                              'ID: ${event.id}',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],

@@ -182,8 +182,11 @@ GoRouter createAppRouter(AuthProvider authProvider) {
       builder: (context, state) => EventChatScreen(eventId: state.pathParameters['id'] ?? ''),
     ),
     GoRoute(
-      path: '/feedback-submitted',
-      builder: (context, state) => const FeedbackSubmitted(),
+      path: '/feedback-submitted/:id',
+      builder: (context, state) => FeedbackSubmitted(
+        eventId: state.pathParameters['id'] ?? '',
+        eventTitle: state.uri.queryParameters['title'] ?? 'Event',
+      ),
     ),
     GoRoute(
       path: '/notifications',

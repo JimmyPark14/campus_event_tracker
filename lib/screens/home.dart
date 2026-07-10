@@ -438,7 +438,7 @@ class _HomeState extends State<Home> {
                               secondaryTag = 'Registration Closed';
                             } else if (event.isCheckInClosed) {
                               secondaryTag = 'Check-in Closed';
-                            } else if (event.availableSpots <= 0) {
+                            } else if (event.isLimitedSpots && event.availableSpots <= 0) {
                               secondaryTag = 'Sold Out';
                             } else if (event.isLimitedSpots) {
                               secondaryTag = 'Limited Space';
@@ -448,7 +448,7 @@ class _HomeState extends State<Home> {
                               padding: const EdgeInsets.only(bottom: 16.0),
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-                                onTap: () => context.push('/event/${event.id}'),
+                                onTap: () => context.push('/event-detail/${event.id}'),
                                 child: _buildEventCard(context,
                                   month: DateFormat('MMM').format(event.date).toUpperCase(),
                                   day: DateFormat('dd').format(event.date),

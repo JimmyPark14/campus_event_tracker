@@ -111,13 +111,13 @@ class OrganizerProfileSettings extends StatelessWidget {
                           .getOrganizerEvents(userId)
                           .length;
                       final events = eventProvider.getOrganizerEvents(userId);
-                      final avgRating = events.isEmpty
+                      final ratedEventsCount = events.where((e) => e.averageRating > 0).length;
+                      final avgRating = ratedEventsCount == 0
                           ? 0.0
                           : events.fold<double>(
-                                  0,
-                                  (sum, e) => sum + e.averageRating,
-                                ) /
-                                events.length;
+                                0.0,
+                                (sum, e) => sum + e.averageRating,
+                              ) / ratedEventsCount;
 
                       return Row(
                         children: [

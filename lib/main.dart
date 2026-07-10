@@ -7,6 +7,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 import 'router.dart';
 import 'theme.dart';
@@ -57,6 +58,7 @@ void main() async {
   };
 
   await NotificationService().init();
+  await dotenv.load(fileName: ".env");
 
   final authProvider = AuthProvider();
   await authProvider.ensureInitialized();

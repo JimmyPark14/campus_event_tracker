@@ -309,7 +309,7 @@ class _DiscoverEventsState extends State<DiscoverEvents> {
       secondaryStatus = 'Registration Closed';
     } else if (event.isCheckInClosed) {
       secondaryStatus = 'Check-in Closed';
-    } else if (event.availableSpots <= 0) {
+    } else if (event.isLimitedSpots && event.availableSpots <= 0) {
       secondaryStatus = 'Sold Out';
     }
 

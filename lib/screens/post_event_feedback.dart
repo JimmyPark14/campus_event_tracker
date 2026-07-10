@@ -193,7 +193,7 @@ class _PostEventFeedbackState extends State<PostEventFeedback> {
                             );
                             
                             if (context.mounted) {
-                               context.go('/feedback-submitted');
+                               context.go(Uri(path: '/feedback-submitted/${widget.eventId}', queryParameters: {'title': event.title}).toString());
                             }
                           } catch (e) {
                             if (context.mounted) {

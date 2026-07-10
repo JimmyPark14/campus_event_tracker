@@ -64,7 +64,7 @@ class EventDetail extends StatelessWidget {
       buttonText = 'Registration Closed';
       buttonIcon = Icons.block;
       isActionDisabled = true;
-    } else if (event.availableSpots <= 0 && !isRegistered && !isAttended) {
+    } else if (event.isLimitedSpots && event.availableSpots <= 0 && !isRegistered && !isAttended) {
       statusText = 'Sold Out';
       statusBgColor = Theme.of(context).colorScheme.errorContainer;
       statusTextColor = Theme.of(context).colorScheme.error;

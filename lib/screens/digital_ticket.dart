@@ -26,10 +26,11 @@ class DigitalTicket extends StatelessWidget {
       );
     }
 
-    final studentId = user.email?.split('@').first ?? 'UNKNOWN';
-    final qrData = '${event.id}|$studentId';
+    final matrixNumber = user.email?.split('@').first ?? 'UNKNOWN';
+    final userId = user.uid;
+    final qrData = '${event.id}|$userId';
     final name = (userProfile?.name == null || userProfile!.name.isEmpty) ? 'Student' : userProfile.name;
-    final isPending = event.pendingUserIds.contains(studentId);
+    final isPending = event.pendingUserIds.contains(userId);
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surfaceBright,
@@ -276,7 +277,7 @@ class DigitalTicket extends StatelessWidget {
                                 } else if (event.isEventEnded || event.date.isBefore(DateTime.now())) {
                                   ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('This event has already ended.')));
                                 } else {
-                                  _showEnlargedQr(context, qrData, event.title, studentId, name);
+                                  _showEnlargedQr(context, qrData, event.title, matrixNumber, name);
                                 }
                               },
                               child: AspectRatio(
@@ -333,7 +334,7 @@ class DigitalTicket extends StatelessWidget {
 
                         // Student ID
                         Text(
-                          'ID: $studentId',
+                          'ID: $matrixNumber',
                           style: const TextStyle(
                             color: Colors.black54,
                             letterSpacing: 2.0,
@@ -577,7 +578,7 @@ class DigitalTicket extends StatelessWidget {
     );
   }
 
-  Future<void> _showEnlargedQr(BuildContext context, String qrData, String eventTitle, String studentId, String studentName) async {
+  Future<void> _showEnlargedQr(BuildContext context, String qrData, String eventTitle, String matrixNumber, String studentName) async {
     try {
       await ScreenBrightness().setApplicationScreenBrightness(1.0);
     } catch (e) {
@@ -637,7 +638,7 @@ class DigitalTicket extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'ID: $studentId',
+                'ID: $matrixNumber',
                 style: const TextStyle(
                   color: Colors.black54,
                   fontSize: 14,

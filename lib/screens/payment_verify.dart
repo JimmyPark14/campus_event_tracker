@@ -174,8 +174,13 @@ class _PaymentVerifyState extends State<PaymentVerify> with SingleTickerProvider
       final regId = registration['registrationId'];
       final userId = registration['userId'];
       
-      await FirebaseFirestore.instance.collection('registrations').doc(regId).update({
-        'status': isApproved ? 'confirmed' : 'rejected',
+      await FirebaseFirestore.instance
+          .collection('events')
+          .doc(widget.eventId)
+          .collection('registrations')
+          .doc(regId)
+          .update({
+        'status': isApproved ? 'verified' : 'rejected',
       });
       if (!mounted) return;
       await context.read<EventProvider>().verifyPayment(widget.eventId!, userId, isApproved);

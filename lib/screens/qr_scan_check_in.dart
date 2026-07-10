@@ -6,11 +6,13 @@ import 'package:audioplayers/audioplayers.dart';
 import '../providers/event_provider.dart';
 import '../utils/audio_generator.dart';
 import '../theme.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum QrScanState { scanning, success, error }
 
 class QrScanCheckIn extends StatefulWidget {
-  const QrScanCheckIn({super.key});
+  final String? eventId;
+  const QrScanCheckIn({super.key, this.eventId});
 
   @override
   State<QrScanCheckIn> createState() => _QrScanCheckInState();
@@ -24,6 +26,7 @@ class _QrScanCheckInState extends State<QrScanCheckIn>
   QrScanState _scanState = QrScanState.scanning;
   String _errorMsg = 'Invalid ticket.';
   String _lastScannedId = '';
+  String _lastScannedName = '';
   final MobileScannerController _scannerController = MobileScannerController(
     detectionSpeed: DetectionSpeed.noDuplicates,
     returnImage: false,
@@ -50,9 +53,13 @@ class _QrScanCheckInState extends State<QrScanCheckIn>
   void _playSound(bool success) async {
     try {
       if (success) {
-        await _audioPlayer.play(BytesSource(AudioGenerator.generateSuccessSound()));
+        await _audioPlayer.play(
+          BytesSource(AudioGenerator.generateSuccessSound()),
+        );
       } else {
-        await _audioPlayer.play(BytesSource(AudioGenerator.generateErrorSound()));
+        await _audioPlayer.play(
+          BytesSource(AudioGenerator.generateErrorSound()),
+        );
       }
     } catch (e) {
       debugPrint('Audio play failed: $e');
@@ -63,16 +70,25 @@ class _QrScanCheckInState extends State<QrScanCheckIn>
     setState(() {
       _scanState = QrScanState.scanning;
     });
-    _scannerController.start();
   }
 
-  void _handleBarcode(String value) async {
-    if (_scanState != QrScanState.scanning) return;
+  void _handleBarcode(String value, {bool isManual = false}) async {
+    if (!isManual && _scanState != QrScanState.scanning) return;
 
-    _scannerController.stop();
 
-    final parts = value.split('|');
-    if (parts.length != 2) {
+
+    try {
+      final parts = value.split('|');
+    String eventId = '';
+    String studentId = '';
+
+    if (parts.length == 2) {
+      eventId = parts[0];
+      studentId = parts[1];
+    } else if (parts.length == 1 && widget.eventId != null) {
+      eventId = widget.eventId!;
+      studentId = parts[0];
+    } else {
       _playSound(false);
       setState(() {
         _scanState = QrScanState.error;
@@ -81,9 +97,7 @@ class _QrScanCheckInState extends State<QrScanCheckIn>
       return;
     }
 
-    final eventId = parts[0];
-    final studentId = parts[1];
-
+    if (!mounted) return;
     final eventProvider = context.read<EventProvider>();
     final event = eventProvider.getEventById(eventId);
 
@@ -97,12 +111,35 @@ class _QrScanCheckInState extends State<QrScanCheckIn>
     }
 
     if (!event.registeredUserIds.contains(studentId)) {
-      _playSound(false);
-      setState(() {
-        _scanState = QrScanState.error;
-        _errorMsg = 'Ticket not found or has been refunded.';
-      });
-      return;
+      // Fallback: It might be a matrix number (old QR code or manual entry).
+      // Find user UID by checking if their email starts with this string.
+      final userQuery = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isGreaterThanOrEqualTo: '$studentId@')
+          .where('email', isLessThan: '$studentId@\uf8ff')
+          .limit(1)
+          .get();
+
+      if (userQuery.docs.isNotEmpty) {
+        final uid = userQuery.docs.first.id;
+        if (event.registeredUserIds.contains(uid)) {
+          studentId = uid;
+        } else {
+          _playSound(false);
+          setState(() {
+            _scanState = QrScanState.error;
+            _errorMsg = 'Ticket not found or has been refunded.';
+          });
+          return;
+        }
+      } else {
+        _playSound(false);
+        setState(() {
+          _scanState = QrScanState.error;
+          _errorMsg = 'Ticket not found or has been refunded.';
+        });
+        return;
+      }
     }
 
     if (event.attendedUserIds.contains(studentId)) {
@@ -114,32 +151,51 @@ class _QrScanCheckInState extends State<QrScanCheckIn>
       return;
     }
 
+    String scannedName = 'Student';
+    String scannedMatrix = studentId;
+
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(studentId)
+          .get();
+      if (userDoc.exists) {
+        scannedName = userDoc.data()?['name'] ?? 'Student';
+        scannedMatrix = userDoc.data()?['email']?.split('@').first ?? studentId;
+      }
+    } catch (e) {
+      debugPrint('Error fetching user: $e');
+    }
+
     _playSound(true);
     setState(() {
       _scanState = QrScanState.success;
-      _lastScannedId = studentId;
+      _lastScannedId = scannedMatrix;
+      _lastScannedName = scannedName;
     });
 
-    try {
-      await eventProvider.checkInUser(eventId, studentId);
-      Future.delayed(const Duration(milliseconds: 2000), () {
-        if (!mounted) return;
-        if (_isKioskMode) {
-          _startScanning();
-        } else {
-          Navigator.of(context).pop();
-        }
-      });
-    } catch (e) {
-      _playSound(false);
-      setState(() {
-        _scanState = QrScanState.error;
-        _errorMsg = 'Failed to check in. Please check network.';
-      });
+    await eventProvider.checkInUser(eventId, studentId);
+    Future.delayed(const Duration(milliseconds: 2000), () {
+      if (!mounted) return;
       if (_isKioskMode) {
-        Future.delayed(const Duration(milliseconds: 2000), () {
-          if (mounted) _startScanning();
+        _startScanning();
+      } else {
+        Navigator.of(context).pop();
+      }
+    });
+    } catch (e, stack) {
+      debugPrint('Unhandled error in _handleBarcode: $e\n$stack');
+      _playSound(false);
+      if (mounted) {
+        setState(() {
+          _scanState = QrScanState.error;
+          _errorMsg = 'An unexpected error occurred.';
         });
+        if (_isKioskMode) {
+          Future.delayed(const Duration(milliseconds: 2000), () {
+            if (mounted) _startScanning();
+          });
+        }
       }
     }
   }
@@ -148,19 +204,38 @@ class _QrScanCheckInState extends State<QrScanCheckIn>
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
-      final BarcodeCapture? capture = await _scannerController.analyzeImage(
-        image.path,
-      );
-      if (capture == null && mounted) {
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No QR code found in the selected image.'),
-          ),
+      try {
+        final BarcodeCapture? capture = await _scannerController.analyzeImage(
+          image.path,
         );
-      } else if (capture != null && capture.barcodes.isNotEmpty) {
-        if (capture.barcodes.first.rawValue != null) {
-          _handleBarcode(capture.barcodes.first.rawValue!);
+        if (capture == null && mounted) {
+          ScaffoldMessenger.of(context).clearSnackBars();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No QR code found in the selected image.'),
+            ),
+          );
+        } else if (capture != null && capture.barcodes.isNotEmpty) {
+          if (capture.barcodes.first.rawValue != null) {
+            _handleBarcode(capture.barcodes.first.rawValue!);
+          }
+        } else if (mounted) {
+          ScaffoldMessenger.of(context).clearSnackBars();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No QR code found in the selected image.'),
+            ),
+          );
+        }
+      } catch (e) {
+        debugPrint('Error analyzing image: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).clearSnackBars();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to analyze the image. Please try another.'),
+            ),
+          );
         }
       }
     }
@@ -191,10 +266,10 @@ class _QrScanCheckInState extends State<QrScanCheckIn>
             keyboardType: TextInputType.text,
             textInputAction: TextInputAction.done,
             onSubmitted: (value) {
+              final text = value;
               Navigator.pop(context);
-              if (value.isNotEmpty) {
-                _startScanning();
-                _handleBarcode(value);
+              if (text.isNotEmpty) {
+                _handleBarcode(text, isManual: true);
               }
             },
           ),
@@ -205,10 +280,10 @@ class _QrScanCheckInState extends State<QrScanCheckIn>
             ),
             ElevatedButton(
               onPressed: () {
+                final text = matrixController.text;
                 Navigator.pop(context);
-                if (matrixController.text.isNotEmpty) {
-                  _startScanning();
-                  _handleBarcode(matrixController.text);
+                if (text.isNotEmpty) {
+                  _handleBarcode(text, isManual: true);
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -224,8 +299,6 @@ class _QrScanCheckInState extends State<QrScanCheckIn>
       matrixController.dispose();
     });
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -418,17 +491,19 @@ class _QrScanCheckInState extends State<QrScanCheckIn>
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
             child: Row(
               children: [
                 Container(
@@ -488,17 +563,19 @@ class _QrScanCheckInState extends State<QrScanCheckIn>
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -532,7 +609,7 @@ class _QrScanCheckInState extends State<QrScanCheckIn>
                           Row(
                             children: [
                               Text(
-                                'Ahmad Faris',
+                                _lastScannedName,
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
                                       fontWeight: FontWeight.bold,
@@ -619,17 +696,19 @@ class _QrScanCheckInState extends State<QrScanCheckIn>
               bottom: 48,
             ),
             decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [

@@ -330,7 +330,7 @@ class _AttendanceChecklistState extends State<AttendanceChecklist> {
                 onPressed: isScanOpen ? () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const QrScanCheckIn()),
+                    MaterialPageRoute(builder: (context) => QrScanCheckIn(eventId: widget.eventId)),
                   );
                 } : null,
                 icon: Icon(

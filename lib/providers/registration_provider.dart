@@ -57,7 +57,7 @@ class RegistrationProvider extends ChangeNotifier {
           final transDate = DateTime.parse(transactionDateStr.replaceAll(' ', 'T'));
           if (transDate.isBefore(createdAt)) {
             isAiVerified = false;
-            aiReason = "Transaction date is older than event creation. Fake receipt. Original: \$aiReason";
+            aiReason = "Transaction date is older than event creation. Fake receipt. Original: $aiReason";
           }
         } catch (_) {}
       }
@@ -142,7 +142,7 @@ class RegistrationProvider extends ChangeNotifier {
         .collection('events')
         .doc(eventId)
         .collection('registrations')
-        .where('status', isEqualTo: 'verified')
+        .where('status', whereIn: ['verified', 'confirmed'])
         .snapshots();
   }
 
@@ -187,7 +187,7 @@ class RegistrationProvider extends ChangeNotifier {
           .collection('events')
           .doc(eventId)
           .collection('registrations')
-          .where('status', isEqualTo: 'verified')
+          .where('status', whereIn: ['verified', 'confirmed'])
           .get();
           
       return snapshot.docs.map((doc) => doc.data()).toList();

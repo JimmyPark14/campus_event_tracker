@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class FeedbackSubmitted extends StatefulWidget {
-  const FeedbackSubmitted({super.key});
+  final String eventId;
+  final String eventTitle;
+  const FeedbackSubmitted({super.key, required this.eventId, required this.eventTitle});
 
   @override
   State<FeedbackSubmitted> createState() => _FeedbackSubmittedState();
@@ -129,7 +131,7 @@ class _FeedbackSubmittedState extends State<FeedbackSubmitted> with SingleTicker
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Tech Innovation Summit',
+                                widget.eventTitle,
                                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                                   color: Theme.of(context).colorScheme.onSurface,
                                   fontSize: 18,

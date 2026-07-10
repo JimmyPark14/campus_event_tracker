@@ -78,7 +78,7 @@ If any check fails (wrong amount, wrong name, or suspected forgery), set isAiVer
     } catch (e) {
       return {
         'isAiVerified': false,
-        'reason': 'AI processing error: \$e',
+        'reason': 'AI processing error: $e',
         'transactionId': '',
         'transactionDate': '',
       };

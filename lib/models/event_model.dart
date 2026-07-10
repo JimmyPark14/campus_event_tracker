@@ -100,9 +100,11 @@ class EventModel {
     
     DateTime parsedDate = DateTime.now();
     if (data['date'] is Timestamp) {
-      parsedDate = (data['date'] as Timestamp).toDate();
+      DateTime rawDate = (data['date'] as Timestamp).toDate();
+      parsedDate = DateTime(rawDate.year, rawDate.month, rawDate.day, 23, 59, 59);
     } else if (data['date'] is String) {
-      parsedDate = DateTime.tryParse(data['date']) ?? DateTime.now();
+      DateTime rawDate = DateTime.tryParse(data['date']) ?? DateTime.now();
+      parsedDate = DateTime(rawDate.year, rawDate.month, rawDate.day, 23, 59, 59);
     }
     
     List<DateTime> parsedTimestamps = [];

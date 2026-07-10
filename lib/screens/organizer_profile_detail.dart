@@ -245,7 +245,9 @@ class _OrganizerProfileDetailState extends State<OrganizerProfileDetail> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
-                            _organizerProfile!.rating.toStringAsFixed(1),
+                            organizerEvents.isEmpty || organizerEvents.fold<double>(0.0, (sum, e) => sum + e.averageRating) == 0
+                                ? '-'
+                                : (organizerEvents.fold<double>(0.0, (sum, e) => sum + e.averageRating) / organizerEvents.where((e) => e.averageRating > 0).length).toStringAsFixed(1),
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(width: 4),
