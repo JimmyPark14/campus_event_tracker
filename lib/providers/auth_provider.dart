@@ -56,7 +56,9 @@ class AuthProvider extends ChangeNotifier {
           _userProfile = UserProfile.fromFirestore(serverDoc);
           notifyListeners();
         }
-      }).catchError((e) => debugPrint('Background profile fetch error: $e'));
+      }).catchError((e) {
+        debugPrint('Background profile fetch error: $e');
+      });
       
     } catch (e) {
       // If cache is empty (e.g., first login on a new device), fetch from server
