@@ -32,5 +32,4 @@ jobs:
       - name: Upload to Firebase App Distribution
         run: |
           firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
-            --app ${{ secrets.FIREBASE_APP_ID }} \
-            --groups testers
+            --app ${{ secrets.FIREBASE_APP_ID }}
