@@ -69,7 +69,7 @@ dependencies:
   screen_brightness: ^2.1.11
   audioplayers: ^6.8.1
   google_generative_ai: ^0.4.7
-  file_picker: ^11.0.2
+  file_picker: 8.1.4
   flutter_dotenv: ^6.0.1
   pdfx: ^2.9.2
   firebase_storage: ^13.4.3
