@@ -131,8 +131,9 @@ class _CampusEventTrackerAppState extends State<CampusEventTrackerApp> {
         ChangeNotifierProxyProvider<AuthProvider, ThemeProvider>(
           create: (_) => _themeProvider,
           update: (_, auth, theme) {
-            theme?.loadFromUser(auth.userProfile);
-            return theme!;
+            theme ??= _themeProvider;
+            theme.loadFromUser(auth.userProfile);
+            return theme;
           },
         ),
       ],
