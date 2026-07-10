@@ -55,6 +55,9 @@ if ($currentVersion -match "^(\d+)\.(\d+)\.(\d+)\+(\d+)$") {
 
     $apkPath = "build\app\outputs\flutter-apk\app-release.apk"
     if (Test-Path $apkPath) {
+        $renamedApkPath = "build\app\outputs\flutter-apk\cet_${newVersion}.apk"
+        Rename-Item -Path $apkPath -NewName "cet_${newVersion}.apk" -Force
+
         Write-Host "Committing version bump to git..." -ForegroundColor Cyan
         git add pubspec.yaml
         git commit -m "chore: bump version to $newVersion"
@@ -65,7 +68,7 @@ if ($currentVersion -match "^(\d+)\.(\d+)\.(\d+)\+(\d+)$") {
         git push origin "v$newVersion"
 
         Write-Host "Creating GitHub Release..." -ForegroundColor Cyan
-        gh release create "v$newVersion" $apkPath --title "Release v$newVersion" --generate-notes
+        gh release create "v$newVersion" $renamedApkPath --title "Release v$newVersion" --generate-notes
         
         Write-Host "Release created successfully! 🎉" -ForegroundColor Green
         Write-Host "Check it out at: https://github.com/JimmyPark14/campus_event_tracker/releases" -ForegroundColor Cyan
@@ -75,3 +78,10 @@ if ($currentVersion -match "^(\d+)\.(\d+)\.(\d+)\+(\d+)$") {
 } else {
     Write-Error "Could not parse version. Ensure it is in format X.Y.Z+B (e.g. 1.0.0+1)"
 }
+
+<#
+Usage Examples:
+.\release.ps1         # Increments Patch (1.0.1 -> 1.0.2)
+.\release.ps1 -Minor  # Increments Minor (1.0.1 -> 1.1.0)
+.\release.ps1 -Major  # Increments Major (1.1.0 -> 2.0.0)
+#>
