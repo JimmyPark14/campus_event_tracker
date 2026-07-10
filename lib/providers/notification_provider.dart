@@ -5,6 +5,7 @@ class NotificationProvider extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Stream<QuerySnapshot> getNotificationsStream(String userId) {
+    if (userId.isEmpty) return const Stream.empty();
     return _firestore
         .collection('users')
         .doc(userId)
@@ -14,6 +15,7 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   Stream<QuerySnapshot> getRecentNotificationsStream(String userId, {int limit = 3}) {
+    if (userId.isEmpty) return const Stream.empty();
     return _firestore
         .collection('users')
         .doc(userId)
@@ -24,6 +26,7 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   Future<void> markAsRead(String userId, String notificationId) async {
+    if (userId.isEmpty) return;
     try {
       await _firestore
           .collection('users')
@@ -37,6 +40,7 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   Future<void> markAllAsRead(String userId) async {
+    if (userId.isEmpty) return;
     try {
       final batch = _firestore.batch();
       final snapshot = await _firestore
@@ -57,6 +61,7 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   Future<void> clearAll(String userId) async {
+    if (userId.isEmpty) return;
     try {
       final batch = _firestore.batch();
       final snapshot = await _firestore
