@@ -30,25 +30,6 @@ Currently, the app is in the development phase. To run it locally on your machin
 *   An IDE like [Android Studio](https://developer.android.com/studio) or [VS Code](https://code.visualstudio.com/) with Flutter plugins.
 *   An Android emulator, iOS simulator, or a physical device connected.
 
-### Installation
-
-1.  **Clone the repository:**
-    ```bash
-    git clone <your-repository-url>
-    ```
-2.  **Navigate to the project directory:**
-    ```bash
-    cd campus_event_tracker
-    ```
-3.  **Install dependencies:**
-    ```bash
-    flutter pub get
-    ```
-4.  **Run the app:**
-    ```bash
-    flutter run
-    ```
-
 ## 🛠️ Built With
 
 *   [Flutter](https://flutter.dev/) - UI toolkit for building natively compiled applications.
