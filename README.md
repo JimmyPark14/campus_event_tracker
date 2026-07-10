@@ -1,4 +1,4 @@
-# campus_event_tracker
+# Campus Event Tracker
 
 A new Flutter project.
 
