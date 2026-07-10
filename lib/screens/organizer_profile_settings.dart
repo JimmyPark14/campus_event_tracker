@@ -116,7 +116,7 @@ class OrganizerProfileSettings extends StatelessWidget {
                           ? 0.0
                           : events.fold<double>(
                                 0.0,
-                                (sum, e) => sum + e.averageRating,
+                                (total, e) => total + e.averageRating,
                               ) / ratedEventsCount;
 
                       return Row(
