@@ -44,12 +44,30 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> _fetchUserProfile(String uid) async {
     try {
-      DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
+      // Try to load instantly from cache for lightning-fast startup
+      DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get(const GetOptions(source: Source.cache));
       if (doc.exists) {
         _userProfile = UserProfile.fromFirestore(doc);
       }
+      
+      // Fetch from server in the background to ensure data is up to date
+      _firestore.collection('users').doc(uid).get(const GetOptions(source: Source.server)).then((serverDoc) {
+        if (serverDoc.exists) {
+          _userProfile = UserProfile.fromFirestore(serverDoc);
+          notifyListeners();
+        }
+      }).catchError((e) => debugPrint('Background profile fetch error: $e'));
+      
     } catch (e) {
-      debugPrint('Error fetching user profile: $e');
+      // If cache is empty (e.g., first login on a new device), fetch from server
+      try {
+        DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get(const GetOptions(source: Source.server));
+        if (doc.exists) {
+          _userProfile = UserProfile.fromFirestore(doc);
+        }
+      } catch (e2) {
+        debugPrint('Error fetching user profile from server: $e2');
+      }
     }
   }
 
