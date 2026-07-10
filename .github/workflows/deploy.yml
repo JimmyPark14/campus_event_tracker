@@ -23,10 +23,14 @@ jobs:
           echo "${{ secrets.DOT_ENV }}" > .env
           flutter pub get
           flutter build apk --release
+      - name: Write Firebase Service Account
+        env:
+          FIREBASE_CREDS: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        run: echo "$FIREBASE_CREDS" > firebase-credentials.json
       - name: Upload to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
-          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          serviceCredentialsFile: firebase-credentials.json
           groups: testers
           file: build/app/outputs/flutter-apk/app-release.apk
