@@ -23,15 +23,13 @@ jobs:
           echo "${{ secrets.DOT_ENV }}" > .env
           flutter pub get
           flutter build apk --release
-      - name: Write Firebase Service Account
-        env:
-          FIREBASE_CREDS: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
-        run: echo "$FIREBASE_CREDS" > firebase-credentials.json
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}'
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
       - name: Upload to Firebase App Distribution
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: firebase-credentials.json
         run: |
           firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
             --app ${{ secrets.FIREBASE_APP_ID }} \
